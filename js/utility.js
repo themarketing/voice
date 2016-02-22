@@ -54,10 +54,10 @@ function getAuthorName(val) {
 function applyPerson(dom, obj) {
     if (obj["@type"] === "Person") {
         [
-            { selector: ".author", after: obj["@id"], fn: changeID },
-            { selector: ".rpAuthorName", after: getAuthorName(obj["name"]), fn: changeTXT },
-            { selector: ".rpAuthorImage", after: obj["image"], fn: changeSRC },
-            { selector: ".rpAuthorURL", after: obj["url"], fn: changeURL }
+            { selector: ".person", after: obj["@id"], fn: changeID },
+            { selector: ".rpPersonName", after: getAuthorName(obj["name"]), fn: changeTXT },
+            { selector: ".rpPersonImage", after: obj["image"], fn: changeSRC },
+            { selector: ".rpPersonURL", after: obj["url"], fn: changeURL }
         ].map(function (a) {
             return applyDOM(dom, a);
         });
@@ -78,12 +78,12 @@ function applyReview(dom, obj, fn) {
         [
             { selector: ".rpItemReviewedName", after: obj["itemReviewed"]["name"], fn: changeTXT },
             { selector: ".rpReviewRatingRatingValue", after: obj["reviewRating"]["ratingValue"], fn: changeTXT },
-            { selector: ".rpAuthorName", after: getAuthorName(obj["author"]), fn: changeTXT },
+            { selector: ".rpPersonName", after: getAuthorName(obj["author"]), fn: changeTXT },
             { selector: ".rpReviewName", after: obj["name"], fn: changeTXT },
             { selector: ".rpReviewBody", after: obj["reviewBody"], fn: changeTXT },
             { selector: ".rpReviewURL", after: obj["url"], fn: changeURL },
-            { selector: ".rpAuthorImage", after: obj["author"]["image"], fn: changeSRC },
-            { selector: ".rpAuthorURL", after: obj["author"]["url"], fn: changeURL }
+            { selector: ".rpPersonImage", after: obj["author"]["image"], fn: changeSRC },
+            { selector: ".rpPersonURL", after: obj["author"]["url"], fn: changeURL }
         ].forEach(function (a) { return applyDOM(dom, a); });
     }
     return dom;
@@ -100,10 +100,10 @@ function getHTMLTemplates(dom) {
         return val.content;
     });
 }
-function applyJSONLD(doms, objs, fn, fn2) {
+function applyJSONLD(doms, objs, fn) {
     return Array.prototype.map.call(doms, function (dom) {
         return Array.prototype.map.call(objs, function (obj) {
-            return fn(dom, obj, fn2);
+            return fn(dom, obj);
         });
     });
 }
@@ -116,25 +116,25 @@ function applyHTMLTemplates(dom) {
 function addDOM(dom) {
     document.body.appendChild(document.importNode(dom, true));
 }
-function initReviewModule(tmpl, urls) {
+function initReviewModule(tmpl, urls, fn) {
     document.addEventListener("DOMContentLoaded", function (event) {
         getContextFromHTTP(tmpl, function (dom) {
             getTextFromHTTP(urls, function (text) {
                 text.split(/\r\n|\r|\n/).map(function (url) {
                     var templdom = dom.cloneNode(true);
                     getContextFromHTTP(url, function (jsonlddom) {
-                        applyJSONLD(getHTMLTemplates(templdom), getJSONLDs(jsonlddom), applyReview, applyPerson);
+                        applyJSONLD(getHTMLTemplates(templdom), getJSONLDs(jsonlddom), fn);
                     });
                 });
             });
         });
     });
 }
-function initReviewModuleFromSelf(tmpl) {
+function initReviewModuleFromSelf(tmpl, fn) {
     document.addEventListener("DOMContentLoaded", function (event) {
         getContextFromHTTP(tmpl, function (dom) {
             var templdom = dom.cloneNode(true);
-            applyJSONLD(getHTMLTemplates(templdom), getJSONLDs(document), applyReview, applyPerson);
+            applyJSONLD(getHTMLTemplates(templdom), getJSONLDs(document), fn);
         });
     });
 }

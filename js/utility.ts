@@ -54,10 +54,10 @@ function getAuthorName(val) {
 function applyPerson(dom: HTMLElement, obj): HTMLElement {
     if (obj[`@type`] === `Person`) {
         [
-            { selector: ".author", after: obj[`@id`], fn: changeID },
-            { selector: ".rpAuthorName", after: getAuthorName(obj[`name`]), fn: changeTXT },
-            { selector: ".rpAuthorImage", after: obj[`image`], fn: changeSRC },
-            { selector: ".rpAuthorURL", after: obj[`url`], fn: changeURL }
+            { selector: ".person", after: obj[`@id`], fn: changeID },
+            { selector: ".rpPersonName", after: getAuthorName(obj[`name`]), fn: changeTXT },
+            { selector: ".rpPersonImage", after: obj[`image`], fn: changeSRC },
+            { selector: ".rpPersonURL", after: obj[`url`], fn: changeURL }
         ].map((a) => {
             return applyDOM(dom, a);
         });
@@ -78,12 +78,12 @@ function applyReview(dom: HTMLElement, obj, fn): HTMLElement {
         [
             { selector: ".rpItemReviewedName", after: obj[`itemReviewed`][`name`], fn: changeTXT },
             { selector: ".rpReviewRatingRatingValue", after: obj[`reviewRating`][`ratingValue`], fn: changeTXT },
-            { selector: ".rpAuthorName", after: getAuthorName(obj[`author`]), fn: changeTXT },
+            { selector: ".rpPersonName", after: getAuthorName(obj[`author`]), fn: changeTXT },
             { selector: ".rpReviewName", after: obj[`name`], fn: changeTXT },
             { selector: ".rpReviewBody", after: obj[`reviewBody`], fn: changeTXT },
             { selector: ".rpReviewURL", after: obj[`url`], fn: changeURL },
-            { selector: ".rpAuthorImage", after: obj[`author`][`image`], fn: changeSRC },
-            { selector: ".rpAuthorURL", after: obj[`author`][`url`], fn: changeURL }
+            { selector: ".rpPersonImage", after: obj[`author`][`image`], fn: changeSRC },
+            { selector: ".rpPersonURL", after: obj[`author`][`url`], fn: changeURL }
         ].forEach(function(a) { return applyDOM(dom, a); });
     }
     return dom;
@@ -100,10 +100,10 @@ function getHTMLTemplates(dom: HTMLElement): HTMLElement[] {
         return val.content;
     });
 }
-function applyJSONLD(doms: HTMLElement[], objs, fn, fn2): any[] {
+function applyJSONLD(doms: HTMLElement[], objs, fn): any[] {
     return Array.prototype.map.call(doms, (dom) => {
         return Array.prototype.map.call(objs, (obj) => {
-            return fn(dom, obj, fn2);
+            return fn(dom, obj);
         });
     });
 }
@@ -116,25 +116,25 @@ function applyHTMLTemplates(dom: HTMLElement) {
 function addDOM(dom: HTMLElement) {
     document.body.appendChild(document.importNode(dom, true));
 }
-function initReviewModule(tmpl: string, urls: string) {
+function initReviewModule(tmpl: string, urls: string, fn) {
     document.addEventListener("DOMContentLoaded", (event) => {
         getContextFromHTTP(tmpl, (dom) => {
             getTextFromHTTP(urls, (text) => {
                 text.split(/\r\n|\r|\n/).map((url) => {
                     let templdom = dom.cloneNode(true);
                     getContextFromHTTP(url, (jsonlddom) => {
-                        applyJSONLD(getHTMLTemplates(templdom), getJSONLDs(jsonlddom), applyReview, applyPerson);
+                        applyJSONLD(getHTMLTemplates(templdom), getJSONLDs(jsonlddom), fn);
                     });
                 });
             });
         });
     });
 }
-function initReviewModuleFromSelf(tmpl: string) {
+function initReviewModuleFromSelf(tmpl: string, fn) {
     document.addEventListener("DOMContentLoaded", (event) => {
         getContextFromHTTP(tmpl, (dom) => {
             let templdom = dom.cloneNode(true);
-            applyJSONLD(getHTMLTemplates(templdom), getJSONLDs(document), applyReview, applyPerson);
+            applyJSONLD(getHTMLTemplates(templdom), getJSONLDs(document), fn);
         });
     });
 }
