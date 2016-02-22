@@ -52,6 +52,9 @@ function getAuthorName(val) {
     return (typeof val === 'object') ? val['name'] : val;
 }
 function applyPerson(dom, obj) {
+    if (typeof obj["image"] === "undefined") {
+        obj["image"] = "";
+    }
     if (obj["@type"] === "Person") {
         [
             { selector: ".person", after: obj["@id"], fn: changeID },
@@ -62,7 +65,6 @@ function applyPerson(dom, obj) {
             return applyDOM(dom, a);
         });
     }
-    addDOM(dom);
     return dom;
 }
 function applyReview(dom, obj, fn) {
@@ -87,6 +89,12 @@ function applyReview(dom, obj, fn) {
         ].forEach(function (a) { return applyDOM(dom, a); });
     }
     return dom;
+}
+function initReview(dom, obj) {
+    applyReview(dom, obj, function (dom, obj) {
+        applyPerson(dom, obj);
+        addDOM(dom);
+    });
 }
 function getJSONLDs(dom) {
     var vals = dom.querySelectorAll('script[type="application/ld+json"]');
@@ -116,11 +124,17 @@ function applyHTMLTemplates(dom) {
 function addDOM(dom) {
     document.body.appendChild(document.importNode(dom, true));
 }
-function initReviewModule(tmpl, urls, fn) {
+function addDOM2(dom, selector) {
+    document.querySelector(selector).appendChild(document.importNode(dom, true));
+}
+function initModule(tmpl, urls, fn) {
     document.addEventListener("DOMContentLoaded", function (event) {
         getContextFromHTTP(tmpl, function (dom) {
             getTextFromHTTP(urls, function (text) {
-                text.split(/\r\n|\r|\n/).map(function (url) {
+                text.split(/\r\n|\r|\n/).filter(function (item) {
+                    if (item !== '')
+                        return true;
+                }).map(function (url) {
                     var templdom = dom.cloneNode(true);
                     getContextFromHTTP(url, function (jsonlddom) {
                         applyJSONLD(getHTMLTemplates(templdom), getJSONLDs(jsonlddom), fn);
@@ -130,7 +144,7 @@ function initReviewModule(tmpl, urls, fn) {
         });
     });
 }
-function initReviewModuleFromSelf(tmpl, fn) {
+function initModuleFromSelf(tmpl, fn) {
     document.addEventListener("DOMContentLoaded", function (event) {
         getContextFromHTTP(tmpl, function (dom) {
             var templdom = dom.cloneNode(true);
