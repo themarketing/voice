@@ -116,3 +116,25 @@ function applyHTMLTemplates(dom) {
 function addDOM(dom) {
     document.body.appendChild(document.importNode(dom, true));
 }
+function initReviewModule(tmpl, urls) {
+    document.addEventListener("DOMContentLoaded", function (event) {
+        getContextFromHTTP(tmpl, function (dom) {
+            getTextFromHTTP(urls, function (text) {
+                text.split(/\r\n|\r|\n/).map(function (url) {
+                    var templdom = dom.cloneNode(true);
+                    getContextFromHTTP(url, function (jsonlddom) {
+                        applyJSONLD(getHTMLTemplates(templdom), getJSONLDs(jsonlddom), applyReview, applyPerson);
+                    });
+                });
+            });
+        });
+    });
+}
+function initReviewModuleFromSelf(tmpl) {
+    document.addEventListener("DOMContentLoaded", function (event) {
+        getContextFromHTTP(tmpl, function (dom) {
+            var templdom = dom.cloneNode(true);
+            applyJSONLD(getHTMLTemplates(templdom), getJSONLDs(document), applyReview, applyPerson);
+        });
+    });
+}

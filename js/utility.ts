@@ -1,5 +1,4 @@
 "use strict";
-
 function getContextFromHTTP(url: string, fn) {
     getFromHTTP(url, fn, "document");
 }
@@ -116,4 +115,26 @@ function applyHTMLTemplates(dom: HTMLElement) {
 }
 function addDOM(dom: HTMLElement) {
     document.body.appendChild(document.importNode(dom, true));
+}
+function initReviewModule(tmpl: string, urls: string) {
+    document.addEventListener("DOMContentLoaded", (event) => {
+        getContextFromHTTP(tmpl, (dom) => {
+            getTextFromHTTP(urls, (text) => {
+                text.split(/\r\n|\r|\n/).map((url) => {
+                    let templdom = dom.cloneNode(true);
+                    getContextFromHTTP(url, (jsonlddom) => {
+                        applyJSONLD(getHTMLTemplates(templdom), getJSONLDs(jsonlddom), applyReview, applyPerson);
+                    });
+                });
+            });
+        });
+    });
+}
+function initReviewModuleFromSelf(tmpl: string) {
+    document.addEventListener("DOMContentLoaded", (event) => {
+        getContextFromHTTP(tmpl, (dom) => {
+            let templdom = dom.cloneNode(true);
+            applyJSONLD(getHTMLTemplates(templdom), getJSONLDs(document), applyReview, applyPerson);
+        });
+    });
 }

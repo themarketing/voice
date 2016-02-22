@@ -1,5 +1,5 @@
 {
-  //"buildOnSave": true,
+  "buildOnSave": true,
   "atom": {
     "rewriteTsconfig": true,
     "formatOnSave": true
